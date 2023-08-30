@@ -1,3 +1,2 @@
-# Projeto da matéria de Desenvolvimento Multiplataforma 
-
-## Tema: Aplicativo de controle de finanças
+# Meu Controle Financeiro
+## Aplicativo para controle de despesas e contas a pagar desenvolvido em React Native
