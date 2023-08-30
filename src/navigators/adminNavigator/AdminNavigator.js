@@ -33,11 +33,11 @@ const CustomDrawerContent = props => {
                 style={
                     {
                         width: '100%',
-                        marginTop: Dimensions.get('screen').height * .58,
+                        marginTop: Dimensions.get('screen').height * .50,
                         marginBottom: -20
                     }
                 }
-                label={'Version 1.1.102'}  // commits number: git rev-list --all --count
+                label={'Version 1.1.105'}  // commits number: git rev-list --all --count
                 labelStyle={
                     {
                         textAlign: 'center',

@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import UsersScreen from './screens/UsersScreen';
 import UserDetailsScreen from './screens/UserDetailsScreen';
 import CreateUserScreen from './screens/CreateUserScreen';
+import ChangePasswordScreenAdmin from '../ChangePasswordScreenAdmin';
 
 const Stack = createStackNavigator();
 
@@ -27,7 +28,19 @@ const UsersNavigator = ({navigation}) => {
                 component={UserDetailsScreen}
             />
             <Stack.Screen 
+                name='ChangePasswordAdmin' 
+                options={
+                    { 
+                        headerTitle: 'Mudar Palavra-Passe',
+                        headerTitleAlign: 'center'
+                    }
+                }
+            >
+                {() => <ChangePasswordScreenAdmin navigation={navigation} authenticateFirst={false}/>}
+            </Stack.Screen>
+            <Stack.Screen 
                 name='CreateUser' 
+                component={CreateUserScreen}
                 options={
                     {
                         headerShown: true, 
@@ -35,7 +48,6 @@ const UsersNavigator = ({navigation}) => {
                         headerTitleAlign: 'center'
                     }
                 }
-                component={CreateUserScreen}
             />
         </Stack.Navigator>
     );

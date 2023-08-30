@@ -1,6 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import MyProfileScreen from './screens/MyProfileScreen';
+import ChangePasswordScreenAdmin from '../ChangePasswordScreenAdmin';
 
 const Stack = createStackNavigator();
 
@@ -13,6 +14,16 @@ const MyProfileNavigator = () => {
                 options={
                     { 
                         headerShown: false
+                    }
+                }
+            />
+            <Stack.Screen 
+                name='ChangePasswordAdmin' 
+                component={ChangePasswordScreenAdmin} 
+                options={
+                    { 
+                        headerTitle: 'Mudar Palavra-Passe',
+                        headerTitleAlign: 'center'
                     }
                 }
             />

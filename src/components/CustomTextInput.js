@@ -23,7 +23,9 @@ const CustomTextInput = (
         blurOnSubmit=true,
         setRef=null,
         pullBack=false,
-        backgroundColor=null
+        backgroundColor=null,
+        onFocus=null,
+        onBlur=null
 }) => {
     return ( 
         <TextInput
@@ -51,6 +53,8 @@ const CustomTextInput = (
             ref={setRef ? e => setRef(e) : null}
             autoFocus={autofocus}
             maxLength={maxLength}
+            onFocus={onFocus}
+            onBlur={onBlur}
         />
     );
 }

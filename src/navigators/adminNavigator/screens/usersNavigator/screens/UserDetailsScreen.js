@@ -194,7 +194,7 @@ const UserDetailsScreen = ({route, navigation}) => {
         }
     };
 
-    const changePassword = _ => {};
+    const changePassword = _ => navigation.navigate('ChangePasswordAdmin');
 
     const {
         outerContainer,
@@ -378,7 +378,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-evenly'
     },
     btnContainer: {
-        flex: 1, margin: 10
+        flex: 1, 
+        margin: 10
     },
     bold: {
         fontWeight: 'bold'
