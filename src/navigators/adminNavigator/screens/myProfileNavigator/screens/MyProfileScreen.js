@@ -8,8 +8,15 @@ import {
 } from 'react-native';
 import {
     getAuth,
-    signOut
+    signOut,
+    updateEmail,
 } from 'firebase/auth';
+import {
+    doc,
+    setDoc,
+    getDoc,
+    deleteDoc
+} from 'firebase/firestore';
 import AdminButton from '../../../components/AdminButton';
 import { selectUserData } from '../../../../../features/userData/userDataSlice';
 import { useAppSelector, useAppDispatch } from '../../../../../app/hooks';
@@ -17,8 +24,12 @@ import { setUserDataAsync } from '../../../../../features/userData/userDataSlice
 import LoadingIndicator from '../../../../../components/LoadingIndicator';
 import CustomTextInput from '../../../../../components/CustomTextInput';
 import YesNoAlert from '../../../../../components/YesNoAlert';
-import { Snackbar } from 'react-native-paper';
-
+import OkAlert from '../../../../../components/OkAlert';
+import { validateEmail } from '../../../../../utils/Validator';
+import { emailNotExistsOnAppAsync } from '../../../../../../service';
+import { 
+    firestore,
+} from '../../../../../../firebase.config';
 /**
  * {"status": "idle", 
  * "value": {
@@ -46,7 +57,8 @@ const MyProfileScreen = ({navigation}) => {
     const [logOutBtnOpacity, setLogOutBtnOpacity] = useState(1);
 
     const [confirmLogOutAlertVisible, setConfirmLogOutAlertVisible] = useState(false);
-    const [snackbarVisible, setSnackbarVisible] = useState(false);
+    const [okAlertVisible, setOkAlertVisible] = useState(false);
+    const [okAlertDescription, setOkAlertDescription] = useState(false);
 
     useEffect(() => {
         dispatch(setUserDataAsync());
@@ -69,16 +81,27 @@ const MyProfileScreen = ({navigation}) => {
     if (userDataStatus == 'loading')
         return <LoadingIndicator/>
 
-    const changePassword = () => {
-        navigation.navigate('ChangePasswordAdmin');
-    };
-    
-    const onUpdate = () => {
-        setSnackbarVisible(true);
-    };
-
-    const undo = () => {
-        console.log('UNDO');
+    const saveEmail = async _ => {
+        if (email != userData.value.email) {
+            if (!validateEmail(email)) {
+                setEmail(userData.value.email);
+                setOkAlertDescription('E-mail inválido');
+                setOkAlertVisible(true);
+            } else if (!await emailNotExistsOnAppAsync(email, userData.value.id)) {
+                setEmail(userData.value.email);
+                setOkAlertDescription('E-mail já em uso');
+                setOkAlertVisible(true);
+            } else {
+                
+                await updateEmail(getAuth().currentUser, email);
+                const oldDataDoc = doc(firestore, 'users', userData.value.email);
+                const userData = await getDoc(oldDataDoc).data();
+                userData.email = email;
+                await setDoc(doc(firestore, 'users', email), userData);
+                await deleteDoc(oldDataDoc);
+                setOkAlertDescription(`Um e-mail de confirmação foi enviado para '${email}'`);
+            }
+        }
     };
 
     return (
@@ -104,13 +127,13 @@ const MyProfileScreen = ({navigation}) => {
                         <View style={btnContainer}>
                             <AdminButton
                                 text={'Mudar Palavra-Passe'}
-                                onPress={changePassword}
+                                onPress={_ => navigation.navigate('ChangePasswordAdmin')}
                             />
                         </View>
                     <View style={btnContainer}>
                         <AdminButton 
                             text={'Salvar'}
-                            onPress={onUpdate}
+                            onPress={saveEmail}
                         />
                     </View>
                 </View>
@@ -136,19 +159,12 @@ const MyProfileScreen = ({navigation}) => {
                     }
                 }
             />
-            <Snackbar
-                visible={snackbarVisible}
-                duration={2000}
-                onDismiss={_ => setSnackbarVisible(false)}
-                action={
-                    {
-                        label: 'Desfazer',
-                        onPress: undo,
-                    }
-                }
-            >
-                Salvo com sucesso!
-            </Snackbar>
+            <OkAlert
+                visible={okAlertVisible}
+                setVisible={setOkAlertVisible}
+                title='Salvar E-mail'
+                description={okAlertDescription}
+            />
         </View>
     );
 };
