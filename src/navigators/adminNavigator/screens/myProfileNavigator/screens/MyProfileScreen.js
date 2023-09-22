@@ -10,6 +10,8 @@ import {
     getAuth,
     signOut,
     updateEmail,
+    EmailAuthProvider,
+    reauthenticateWithCredential
 } from 'firebase/auth';
 import {
     doc,
@@ -30,6 +32,7 @@ import { emailNotExistsOnAppAsync } from '../../../../../../service';
 import { 
     firestore,
 } from '../../../../../../firebase.config';
+import Prompt from '../../../components/Prompt';
 /**
  * {"status": "idle", 
  * "value": {
@@ -60,6 +63,9 @@ const MyProfileScreen = ({navigation}) => {
     const [okAlertVisible, setOkAlertVisible] = useState(false);
     const [okAlertDescription, setOkAlertDescription] = useState(false);
 
+    const [promptVisible, setPromptVisible] = useState(false);
+    const [promptText, setPromptText] = useState('');
+
     useEffect(() => {
         dispatch(setUserDataAsync());
     }, []);
@@ -81,7 +87,7 @@ const MyProfileScreen = ({navigation}) => {
     if (userDataStatus == 'loading')
         return <LoadingIndicator/>
 
-    const saveEmail = async _ => {
+    const emailValidation = async _ => {
         if (email != userData.value.email) {
             if (!validateEmail(email)) {
                 setEmail(userData.value.email);
@@ -91,17 +97,28 @@ const MyProfileScreen = ({navigation}) => {
                 setEmail(userData.value.email);
                 setOkAlertDescription('E-mail já em uso');
                 setOkAlertVisible(true);
-            } else {
-                
-                await updateEmail(getAuth().currentUser, email);
-                const oldDataDoc = doc(firestore, 'users', userData.value.email);
-                const userData = await getDoc(oldDataDoc).data();
-                userData.email = email;
-                await setDoc(doc(firestore, 'users', email), userData);
-                await deleteDoc(oldDataDoc);
-                setOkAlertDescription(`Um e-mail de confirmação foi enviado para '${email}'`);
-            }
+            } else
+                setPromptVisible(true);
         }
+    };
+    
+    const validatePassword = async _ => {
+        const user = getAuth().currentUser;
+        const cred = EmailAuthProvider.credential(user.email, promptText);
+        reauthenticateWithCredential(user, cred)
+        .then(async () => {
+            await updateEmail(user, email);
+            const oldDataDoc = doc(firestore, 'users', userData.value.email);
+            const data = await getDoc(oldDataDoc).data();
+            data.email = email;
+            await setDoc(doc(firestore, 'users', email), data);
+            await deleteDoc(oldDataDoc);
+            setOkAlertDescription(`Um e-mail de confirmação foi enviado para '${email}'`);
+            setOkAlertVisible(true);
+        }).catch(error => {
+            console.log('The following error was caught:');
+            console.log(error);
+        });
     };
 
     return (
@@ -109,7 +126,7 @@ const MyProfileScreen = ({navigation}) => {
             <ScrollView
                 contentContainerStyle={innerContainer}
                 keyboardDismissMode='on-drag'
-            >
+                >
                 <View style={{ flex: 1 }}>
                     <Text style={topLabel}>E-mail</Text>
                     <CustomTextInput
@@ -133,7 +150,7 @@ const MyProfileScreen = ({navigation}) => {
                     <View style={btnContainer}>
                         <AdminButton 
                             text={'Salvar'}
-                            onPress={saveEmail}
+                            onPress={emailValidation}
                         />
                     </View>
                 </View>
@@ -164,6 +181,19 @@ const MyProfileScreen = ({navigation}) => {
                 setVisible={setOkAlertVisible}
                 title='Salvar E-mail'
                 description={okAlertDescription}
+            />
+            <Prompt
+                visible={promptVisible}
+                setVisible={setPromptVisible}
+                title={'Confirmar Senha'}
+                description={'Digite sua senha abaixo'}
+                text={promptText}
+                setText={setPromptText}
+                secureTextEntry={true}
+                onFocus={_ =>  setLogOutBtnOpacity(0)}
+                onBlur={_ => setLogOutBtnOpacity(1)}
+                onPressCancel={_ => setEmail(userData.value.email)}
+                onPressConfirm={validatePassword}
             />
         </View>
     );
