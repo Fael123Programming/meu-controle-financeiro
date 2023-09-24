@@ -109,15 +109,20 @@ const MyProfileScreen = ({navigation}) => {
         .then(async () => {
             await updateEmail(user, email);
             const oldDataDoc = doc(firestore, 'users', userData.value.email);
-            const data = await getDoc(oldDataDoc).data();
+            const data = (await getDoc(oldDataDoc)).data();
             data.email = email;
             await setDoc(doc(firestore, 'users', email), data);
             await deleteDoc(oldDataDoc);
             setOkAlertDescription(`Um e-mail de confirmação foi enviado para '${email}'`);
             setOkAlertVisible(true);
+            dispatch(setUserDataAsync());
         }).catch(error => {
-            console.log('The following error was caught:');
+            setPromptVisible(false);
+            setEmail(userData.value.email);
+            setOkAlertDescription('Senha inválida!');
+            setOkAlertVisible(true);
             console.log(error);
+            setPromptText('');
         });
     };
 
@@ -126,7 +131,7 @@ const MyProfileScreen = ({navigation}) => {
             <ScrollView
                 contentContainerStyle={innerContainer}
                 keyboardDismissMode='on-drag'
-                >
+            >
                 <View style={{ flex: 1 }}>
                     <Text style={topLabel}>E-mail</Text>
                     <CustomTextInput
