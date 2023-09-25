@@ -5,7 +5,8 @@ import {
     ScrollView,
     Text,
     StyleSheet,
-    Dimensions
+    Dimensions,
+    Keyboard
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../../../../../app/hooks';
 import { selectCities, setCitiesAsync } from '../../../../../features/cities/citiesSlice';
@@ -21,7 +22,6 @@ import {
     usernameNotTakenAsync, 
     emailNotExistsOnAppAsync 
 } from '../../../../../../service';
-import { validateEmail } from '../../../../../utils/Validator';
 import { validatePostcode } from '../../../../../utils/Validator';
 import {
     doc,
@@ -34,7 +34,19 @@ import {
     sendEmailVerification,
     updateEmail
 } from 'firebase/auth';
-import { firestore } from '../../../../../../firebase.config';
+import { setUserDataAsync } from '../../../../../features/userData/userDataSlice';
+import { Snackbar } from 'react-native-paper';
+import { setUsersAsync } from '../../../../../features/users/usersSlice';
+import {
+    ref,
+    uploadBytes,
+    deleteObject,
+    getDownloadURL
+} from 'firebase/storage';
+import { 
+    firestore,
+    storage
+} from '../../../../../../firebase.config';
 
 const drawPostcodePattern = postcodeType => {
     let str = '';
@@ -57,27 +69,18 @@ const UserDetailsScreen = ({route, navigation}) => {
     const [city, setCity] = useState(user?.city);
     const [postalCode, setPostalCode] = useState(user?.postcode);
     const [email, setEmail] = useState(user?.email);
-    // const [image, setImage] = useState(user?.image);
-    const [image, setImage] = useState({uri: 'https://firebasestorage.googleapis.com/v0/b/meu-controlo-financeiro.appspot.com/o/users%2Frowstmail%40gmail.com%2Fimages%2Fprofile%2Fprofile.jpeg?alt=media&token=bfdb9e67-855a-4c80-b1c5-ceb2aa3cc9ca'});
-
+    const [image, setImage] = useState(user?.image);
     const [pullBack, setPullBack] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
 
+    const [visibleSnackbar, setVisibleSnackbar] = useState(false);
     const [surnameInput, setSurnameInput] = useState();
     const [usernameInput, setUsernameInput] = useState();
     const [cityInput, setCityInput] = useState();
     const [postalCodeInput, setPostalCodeInput] = useState();
-    const [emailInput, setEmailInput] = useState();
 
-    const [changedName, setChangedName] = useState(false);
-    const [changedSurname, setChangedSurname] = useState(false);
-    const [changedUsername, setChangedUsername] = useState(false);
-    const [changedBirthday, setChangedBirthday] = useState(false);
-    const [changedStreet, setChangedStreet] = useState(false);
-    const [changedCity, setChangedCity] = useState(false);
-    const [changedPostalCode, setChangedPostalCode] = useState(false);
-    const [changedEmail, setChangedEmail] = useState(false);
-    const [changedImage, setChangedImage] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [nameFocus, setNameFocus] = useState(true);
 
     const cities = useAppSelector(selectCities);
     const citiesStatus = useAppSelector(status => status.cities.status);
@@ -99,98 +102,109 @@ const UserDetailsScreen = ({route, navigation}) => {
         trimmedUsername = username.trim(),
         trimmedStreet = street.trim(),
         trimmedCity = city.trim(),
-        trimmedPostcode = postalCode.trim(),
-        trimmedEmail = email.trim();
+        trimmedPostcode = postalCode.trim();
         if (trimmedName != user?.name) {
             if (trimmedName.length < 2) {
                 Alert.alert('Nome Inválido', 'O campo de nome deve ter pelos menos 2 caracteres');
+                setName(user?.name);
                 return false;
             }
-            setChangedName(true);
         } 
         if (trimmedSurname != user?.surname) {
             if (trimmedSurname.length < 2) {
                 Alert.alert('Sobrenome Inválido', 'O campo de sobrenome deve ter pelos menos 2 caracteres');
+                setSurname(user?.surname);
                 return false;
             }
-            setChangedSurname(true);
         } 
         if (trimmedUsername != user?.username) {
             if (trimmedUsername.length < 2) {
                 Alert.alert('Nome de Utilizador Inválido', 'O campo de nome de utilizador deve ter pelos menos 2 caracteres');
+                setUsername(user?.username);
                 return false;
             }
             if (!await usernameNotTakenAsync(trimmedUsername)) {
                 Alert.alert('Nome de Utilizador Já em Uso', 'O campo de nome de utilizador já está em uso');
+                setUsername(user?.username);
                 return false;
             }
-            setChangedUsername(true);
         }
-        if (birthday != user?.birthdayDate)
-            setChangedBirthday(true);
         if (trimmedStreet != user?.street) {
             if (trimmedStreet.length < 2) {
                 Alert.alert('Logradouro Inválido', 'O logradouro deve ter pelos menos 2 caracteres');
+                setStreet(user?.street);
                 return false;
             }
-            setChangedStreet(true);
         }
         if (trimmedCity != user?.city) {
             if (trimmedCity.length < 2) {
                 Alert.alert('Cidade Inválida', 'O nome da cidade deve ter pelos menos 2 caracteres');
+                setCity(user?.city);
                 return false;
             }
-            if (cities.value.filter(ele => ele.label.toLowerCase() === city).length == 0) {
+            if (cities.value.filter(ele => ele?.label?.toLowerCase() === city?.toLowerCase()).length == 0) {
                 Alert.alert('Cidade Desconhecida', 'A cidade digitada não foi encontrada na base de dados');
+                setCity(user?.city);
                 return false;
             }
-            setChangedCity(true);
         }
         if (trimmedPostcode != user?.postcode) {
             if (!validatePostcode(trimmedPostcode, postcodeType)) {
                 Alert.alert('Código Postal Inválido', `O código postal deve ter o formato ${drawPostcodePattern(postcodeType)}`);
+                setPostalCode(user?.postcode);
                 return false;
             }
-            setChangedPostalCode(true);
-        }
-        if (trimmedEmail != user?.email) {
-            if (!validateEmail(trimmedEmail)) {
-                Alert.alert('E-mail Inválido', 'O campo de e-mail não possui um e-mail válido');
-                return false;
-            }
-            if (!await emailNotExistsOnAppAsync(trimmedEmail)) {
-                Alert.alert('E-mail Já em Uso', 'O e-mail digitado já está em uso por outro usuário');
-                return false;
-            }
-            setChangedEmail(true);
         }
         return true;
     };
 
     const onUpdate = async _ => {
         let updateStatus = await checkData();
-        if (updateStatus) {  // If validation succeeded!
-            // if (changedEmail) {
-            //     const docRef = doc(firestore, 'users', email);
-            //     await setDoc(docRef, {
-            //         id: user?.id,
-            //         name: name,
-            //         surname: surname,
-            //         username: username,
-            //         birthdayDate: birthday,
-            //         street: street,
-            //         city: city,
-            //         postcode: postalCode,
-            //         email: email,
-            //         nextExpenseId: user?.nextExpenseId,
-            //         image: image,
-            //         expenses: user?.expenses,
-            //         historic: user?.historic
-            //     });
-            //     await deleteDoc(doc(firestore, 'users', user?.email));
-            // } else {
-            //     const docRef = doc(firestore, 'users', )
-            // }
+        if (updateStatus) {
+            setLoading(true);
+            const profileImagePath = 'users/' + email + '/images/profile/profile.jpeg';
+            const profileRef = ref(storage, profileImagePath);
+            const docRef = doc(firestore, 'users', email);
+            if (image) {
+                const imageResponse = await fetch(image.uri);
+                const imageBlob = await imageResponse.blob();
+                await uploadBytes(profileRef, imageBlob);
+                getDownloadURL(profileRef)
+                    .then(async url => {
+                        await updateDoc(docRef, {
+                            name: name,
+                            surname: surname,
+                            username: username,
+                            birthdayDate: birthday,
+                            street: street,
+                            city: city,
+                            postcode: postalCode,
+                            image: {uri: url}
+                        });
+                    });
+            } else {
+                try {
+                    await deleteObject(profileRef);
+                } catch(err) {
+                    console.log('Error when trying to delete the profile image ------');
+                    console.log(err.message);
+                }
+                await updateDoc(docRef, {
+                    name: name,
+                    surname: surname,
+                    username: username,
+                    birthdayDate: birthday,
+                    street: street,
+                    city: city,
+                    postcode: postalCode,
+                    image: null
+                });
+            }
+            dispatch(setUserDataAsync());
+            dispatch(setUsersAsync());
+            setVisibleSnackbar(true);
+            setNameFocus(false);
+            setLoading(false);
         }
     };
 
@@ -207,7 +221,7 @@ const UserDetailsScreen = ({route, navigation}) => {
         bold
     } = styles;
 
-    if (citiesStatus === 'loading')
+    if (citiesStatus === 'loading' || loading)
         return <LoadingIndicator/>
 
     return (
@@ -229,7 +243,7 @@ const UserDetailsScreen = ({route, navigation}) => {
                     setState={setName}
                     placeholder='Nome'
                     backgroundColor={'white'}
-                    autofocus={true}
+                    autofocus={nameFocus}
                     marginTop={1}
                     onSubmitEditing={_ => surnameInput.focus()}
                     blurOnSubmit={false}
@@ -308,7 +322,7 @@ const UserDetailsScreen = ({route, navigation}) => {
                         type={postcodeType}  // xxxx-xxx
                         placeholder={'Código Postal'}
                         backgroundColor={'white'}
-                        onSubmitEditing={_ => emailInput.focus()}
+                        onSubmitEditing={Keyboard.dismiss}
                         blurOnSubmit={false}
                     />
                 </View>
@@ -322,7 +336,7 @@ const UserDetailsScreen = ({route, navigation}) => {
                     marginTop={1}
                     backgroundColor={'white'}
                     pullBack={pullBack}
-                    setRef={setEmailInput}
+                    editable={false}
                 />
                 <View style={[rowContainer, bottomButtonsContainer]}>
                     <View style={btnContainer}>
@@ -345,6 +359,13 @@ const UserDetailsScreen = ({route, navigation}) => {
                 image={image}
                 setImage={setImage}
             />
+            <Snackbar
+                visible={visibleSnackbar}
+                onDismiss={() => setVisibleSnackbar(false)}
+                duration={2000}
+            >
+                Salvo com sucesso!
+            </Snackbar>
         </View>
     );
 };

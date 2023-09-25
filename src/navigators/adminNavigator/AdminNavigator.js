@@ -11,8 +11,8 @@ import {
     DrawerItem
 } from '@react-navigation/drawer';
 import { 
-    Feather, 
-    FontAwesome5, 
+    Feather,
+    FontAwesome5,
     MaterialIcons, 
     MaterialCommunityIcons,
     AntDesign
@@ -29,7 +29,7 @@ const CustomDrawerContent = props => {
     return (
         <DrawerContentScrollView {...props}>
             <DrawerItemList {...props}/>
-            <DrawerItem 
+            <DrawerItem
                 style={
                     {
                         width: '100%',
@@ -37,7 +37,7 @@ const CustomDrawerContent = props => {
                         marginBottom: -20
                     }
                 }
-                label={'Version 1.1.105'}  // commits number: git rev-list --all --count
+                label={'Version 1.1.109'}  // commits number: git rev-list --all --count
                 labelStyle={
                     {
                         textAlign: 'center',
@@ -104,7 +104,7 @@ const AdminNavigator = ({navigation}) => {
                     {
                         drawerActiveTintColor: '#4287f5',
                         drawerInactiveTintColor: 'black',
-                        drawerLabel: drawLabel('Usuários'), 
+                        drawerLabel: drawLabel('Usuários'),
                         headerShown: true,
                         headerTitle: 'Usuários',
                         headerTitleAlign: 'center',
@@ -162,7 +162,6 @@ const AdminNavigator = ({navigation}) => {
                 name='PaymentMethodsNavigator' 
                 options={
                     {
-
                         drawerActiveTintColor: '#4287f5',
                         drawerInactiveTintColor: 'black',
                         drawerLabel: drawLabel('Pagamentos'),
