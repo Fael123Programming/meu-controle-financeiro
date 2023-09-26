@@ -597,7 +597,30 @@ const getUsersAsync = async _ => {
     return data;
 };
 
-export { 
+const blockUserAsync = async (email, status) => {
+    const docRef = doc(firestore, 'users', email);
+    await updateDoc(docRef, {
+        blocked: status
+    });
+};
+
+const isUserBlockedAsync = async email => {
+    let blocked;
+    try {
+        const docRef = doc(firestore, 'users', email);
+        const theDoc = await getDoc(docRef);
+        blocked = theDoc.get('blocked');
+    } catch (err) {
+        console.log('Error caught:');
+        console.log(err);
+        blocked = false;
+    }
+    return blocked;
+};
+
+export {
+    blockUserAsync,
+    isUserBlockedAsync,
     getAppGatewayAsync,
     sort,
     sortState,

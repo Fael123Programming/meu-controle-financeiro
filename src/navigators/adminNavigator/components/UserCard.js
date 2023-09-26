@@ -8,6 +8,7 @@ import {
 import { Entypo } from '@expo/vector-icons';
 import TextRow from './TextRow';
 import YesNoAlert from '../../../components/YesNoAlert';
+import { blockUserAsync } from '../../../../service';
 
 const UserCard = props => {
     const [blocked, setBlocked] = useState(false);
@@ -71,18 +72,20 @@ const UserCard = props => {
                 setVisible={setBlockAlertVisible}
                 title={'Bloquear Utilizador'}
                 description={`Desejas realmente bloquear utilizador '${name}'?`}
-                onPressYes={() => {
+                onPressYes={async () => {
                         setBlocked(true);
+                        await blockUserAsync(email, true);
                     }
                 }
-            />
+                />
             <YesNoAlert
                 visible={unblockAlertVisible}
                 setVisible={setUnblockAlertVisible}
                 title={'Desbloquear Utilizador'}
                 description={`Desbloquear utilizador '${name}?'`}
-                onPressYes={() => {
+                onPressYes={async () => {
                         setBlocked(false);
+                        await blockUserAsync(email, false);
                     }
                 }
             />

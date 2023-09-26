@@ -17,7 +17,7 @@ import Colors from '../../../utils/Colors';
 import Fonts from '../../../utils/Fonts';
 import { StackActions } from '@react-navigation/native';
 import { validateEmail, validatePassword } from '../../../utils/Validator';
-import { signInGoogle, getAppGatewayAsync } from '../../../../service';
+import { signInGoogle, getAppGatewayAsync, isUserBlockedAsync } from '../../../../service';
 import { 
     getAuth,
     signOut,
@@ -45,7 +45,7 @@ const login = async (email, password) => {
     let message = {};
     try {
         const auth = getAuth();
-        const userCred = await signInWithEmailAndPassword(
+        await signInWithEmailAndPassword(
             auth,
             email,
             password
@@ -60,6 +60,11 @@ const login = async (email, password) => {
                 handleCodeInApp: true,
                 url: 'https://meu-controlo-financeiro.firebaseapp.com'
             });
+            await signOut(auth);
+            return message;
+        } else if (await isUserBlockedAsync(email)) {
+            message.header = 'Usuário Bloqueado';
+            message.body = 'Infelizmente, este usuário foi bloqueado!';
             await signOut(auth);
             return message;
         }
@@ -106,7 +111,7 @@ const LoginScreen = ({route, navigation}) => {
     const [opacity, setOpacity] = useState(1);
 
     useEffect(() => {
-        const subscriber = getAuth().onAuthStateChanged(user => {
+        const subscriber = getAuth().onAuthStateChanged(async user => {
             user && setUser(user.emailVerified ? user : null);
             if (initializing)
                 setInitializing(false);

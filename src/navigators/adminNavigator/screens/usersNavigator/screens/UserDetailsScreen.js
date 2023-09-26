@@ -340,12 +340,6 @@ const UserDetailsScreen = ({route, navigation}) => {
                 />
                 <View style={[rowContainer, bottomButtonsContainer]}>
                     <View style={btnContainer}>
-                        <AdminButton
-                            text={'Mudar Palavra-Passe'}
-                            onPress={changePassword}
-                        />
-                    </View>
-                    <View style={btnContainer}>
                         <AdminButton 
                             text={'Salvar'}
                             onPress={onUpdate}
