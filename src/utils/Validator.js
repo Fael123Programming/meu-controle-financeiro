@@ -1,5 +1,5 @@
 import { 
-    emailNotExistsOnAppAsync,
+    emailDoesNotExistOnAppAsync,
     usernameNotTakenAsync
 } from "../../service";
 import { isValidBirthdayDate } from "./Date";
@@ -76,9 +76,9 @@ async function validateUserData(
             if (isValidBirthdayDate(birthdayDate, minAge)) {
                 if (validateTextField(street) && validateCity(city, cities) && validatePostcode(postcode, postcodeType)) {
                     if (validateEmail(email)) {
-                        if (await emailNotExistsOnAppAsync(email, id)) {
+                        if (await emailDoesNotExistOnAppAsync(email, id)) {
                             message.header = 'ok'; 
-                            message.body = 'ok';                           
+                            message.body = 'ok';             
                         } else {
                             message.header = 'E-mail Repetido';
                             message.body = 'O e-mail já está em uso!';

@@ -157,11 +157,8 @@ const LoginScreen = ({route, navigation}) => {
         createAccount
     } = styles;
 
-    if (initializing)
+    if (initializing | loading)
         return <LoadingIndicator/>;
-
-    if (loading)
-        return <LoadingIndicator loadingMessage='Validando credenciais...'/>;
 
     return (
         <View style={[styles.outerContainer, {opacity: opacity}]}>

@@ -32,7 +32,7 @@ import { selectUserMinAge, setUserMinAgeAsync } from '../../../features/userMinA
 const CreateAccountScreen = ({navigation}) => {
     const [name, setName] = useState('');
     const [surname, setSurname] = useState('');
-    const [date, setDate] = useState();
+    const [birthday, setBirthday] = useState();
     const [street, setStreet] = useState('');
     const [city, setCity] = useState('');
     const [postalCode, setPostalCode] = useState('');
@@ -171,8 +171,8 @@ const CreateAccountScreen = ({navigation}) => {
                 />
                 <Text style={topLabel}>Data de Nascimento</Text>
                 <CustomDatePicker
-                    state={date}
-                    setState={setDate}
+                    state={birthday}
+                    setState={setBirthday}
                     width={90}
                     marginTop={0}
                     marginBottom={3}
@@ -282,7 +282,7 @@ const CreateAccountScreen = ({navigation}) => {
                                     trimmedData?.name, 
                                     trimmedData?.surname, 
                                     trimmedData?.username, 
-                                    date, 
+                                    birthday, 
                                     trimmedData?.street,
                                     trimmedData?.city,
                                     trimmedData?.postcode,
@@ -309,7 +309,7 @@ const CreateAccountScreen = ({navigation}) => {
                                                         trimmedData?.name, 
                                                         trimmedData?.surname, 
                                                         trimmedData?.username, 
-                                                        date, 
+                                                        birthday, 
                                                         trimmedData?.street,
                                                         trimmedData?.city,
                                                         trimmedData?.postcode,

@@ -47,6 +47,7 @@ import {
     firestore,
     storage
 } from '../../../../../../firebase.config';
+import YesNoAlert from '../../../../../components/YesNoAlert';
 
 const drawPostcodePattern = postcodeType => {
     let str = '';
@@ -81,18 +82,38 @@ const UserDetailsScreen = ({route, navigation}) => {
 
     const [loading, setLoading] = useState(false);
     const [nameFocus, setNameFocus] = useState(true);
+    const [avoidUseEffect, setAvoidUseEffect] = useState(false);
 
     const cities = useAppSelector(selectCities);
     const citiesStatus = useAppSelector(status => status.cities.status);
 
     const dispatch = useAppDispatch();
 
+    const [yesNoAlertVisible, setYesNoAlertVisible] = useState(false);
+    const [action, setAction] = useState();
+
     useEffect(() => {
         dispatch(setCitiesAsync());
     }, []);
 
-    // useEffect(() => navigation.addListener('beforeRemove', e => {
-    // }), [navigation]);
+    useEffect(() => navigation.addListener('beforeRemove', e => {
+        if (!avoidUseEffect) {
+            if (
+                name != user?.name ||
+                surname != user?.surname ||
+                username != user?.username ||
+                birthday != user?.birthdayDate ||
+                street != user?.street ||
+                city != user?.city ||
+                postalCode != user?.postcode ||
+                image != user?.image
+            ) {
+                e.preventDefault();
+                setAction(e.data.action);
+                setYesNoAlertVisible(true);
+            }
+        }
+    }), [navigation, avoidUseEffect, name, surname, username, birthday, street, city, postalCode, image]);
     
     const postcodeType = [4, 3];
 
@@ -202,13 +223,12 @@ const UserDetailsScreen = ({route, navigation}) => {
             }
             dispatch(setUserDataAsync());
             dispatch(setUsersAsync());
-            setVisibleSnackbar(true);
             setNameFocus(false);
+            setVisibleSnackbar(true);
             setLoading(false);
+            setAvoidUseEffect(true);
         }
     };
-
-    const changePassword = _ => navigation.navigate('ChangePasswordAdmin');
 
     const {
         outerContainer,
@@ -355,11 +375,18 @@ const UserDetailsScreen = ({route, navigation}) => {
             />
             <Snackbar
                 visible={visibleSnackbar}
-                onDismiss={() => setVisibleSnackbar(false)}
-                duration={2000}
+                onDismiss={() => {setVisibleSnackbar(false); navigation.goBack();}}
+                duration={1000}
             >
                 Salvo com sucesso!
             </Snackbar>
+            <YesNoAlert
+                title={'Salvar Dados'}
+                description={'Se voltar antes de salvar, as modificações feitas serão perdidas. Deseja prosseguir?'}
+                visible={yesNoAlertVisible}
+                setVisible={setYesNoAlertVisible}
+                onPressYes={_ => navigation.dispatch(action)}
+            />
         </View>
     );
 };

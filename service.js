@@ -78,7 +78,8 @@ const createNewUserAsync = async (
     street,
     city,
     postcode,
-    email
+    email,
+    image=null
 ) => {
     const docRef = doc(firestore, 'users', email);
     // Create user data document.
@@ -96,6 +97,18 @@ const createNewUserAsync = async (
         nextExpenseId: 1,
         expenses: [],
         historic: []
+    });
+    await updateDoc(doc(firestore, 'admin', 'config'), {
+        nextUserId: increment(1)
+    });
+};
+
+const createNewAdminAsync = async email => {
+    const docRef = doc(firestore, 'users', email);
+    await setDoc(docRef, {
+        id: await nextUserIdAsync(),
+        admin: true,
+        email: email
     });
     await updateDoc(doc(firestore, 'admin', 'config'), {
         nextUserId: increment(1)
@@ -410,17 +423,29 @@ const fetchHistoricAsync = async () => {
     return theDoc.get('historic');
 };
 
-const emailNotExistsOnAppAsync = async (email, id) => {
+const emailDoesNotExistOnAppAsync = async email => {
     const collRef = collection(firestore, 'users');
     const theDocs = await getDocs(collRef);
     let res = true;
     theDocs.forEach(theDoc => {
-        if (theDoc.get('id') !== id)
-            if (theDoc.id === email)
+        // if (theDoc.get('id') !== id)
+            if (theDoc.id === email) {
                 res = false;
+            }
     });
     return res;
 };
+// const emailDoesNotExistOnAppAsync = async (email, id) => {
+//     const collRef = collection(firestore, 'users');
+//     const theDocs = await getDocs(collRef);
+//     let res = true;
+//     theDocs.forEach(theDoc => {
+//         if (theDoc.get('id') !== id)
+//             if (theDoc.id === email)
+//                 res = false;
+//     });
+//     return res;
+// };
 
 const getConfigDocAsync = async _ => {
     const docRef = doc(firestore, 'admin', 'config');
@@ -644,10 +669,11 @@ export {
     createNewUserAsync,
     reauthenticate,
     updatePasswd,
-    emailNotExistsOnAppAsync,
+    emailDoesNotExistOnAppAsync,
     getUserMinAgeAsync,
     getCitiesAsync,
     getIssuersAsync,
     getDefaultPaymentMethodOfAsync,
-    getUsersAsync
+    getUsersAsync,
+    createNewAdminAsync
 };
