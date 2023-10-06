@@ -435,17 +435,6 @@ const emailDoesNotExistOnAppAsync = async email => {
     });
     return res;
 };
-// const emailDoesNotExistOnAppAsync = async (email, id) => {
-//     const collRef = collection(firestore, 'users');
-//     const theDocs = await getDocs(collRef);
-//     let res = true;
-//     theDocs.forEach(theDoc => {
-//         if (theDoc.get('id') !== id)
-//             if (theDoc.id === email)
-//                 res = false;
-//     });
-//     return res;
-// };
 
 const getConfigDocAsync = async _ => {
     const docRef = doc(firestore, 'admin', 'config');
@@ -643,7 +632,28 @@ const isUserBlockedAsync = async email => {
     return blocked;
 };
 
+const updateCityAsync = async (oldName, newName) => {
+    const docRef = doc(firestore, 'admin', 'config');
+    const theDoc = await getDoc(docRef);
+    const cities = theDoc.get('cities');
+    let oldCity = cities.filter(c => c.label.toLowerCase() == oldName.toLowerCase())[0];
+    oldCity.label = newName;
+    await updateDoc(docRef, {
+        cities: cities,
+    });
+};
+
+
+const cityExistsAsync = async cityName => {
+    const docRef = doc(firestore, 'admin', 'config');
+    const theDoc = await getDoc(docRef);
+    const cities = theDoc.get('cities');
+    return cities.filter(c => c.label.toLowerCase() == cityName.toLowerCase()).length > 0;
+};
+
 export {
+    cityExistsAsync,
+    updateCityAsync,
     blockUserAsync,
     isUserBlockedAsync,
     getAppGatewayAsync,

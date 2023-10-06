@@ -8,8 +8,14 @@ import {
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import YesNoAlert from '../../../components/YesNoAlert';
+import { cityExistsAsync, updateCityAsync } from '../../../../service';
+import { useAppDispatch, useAppSelector } from '../../../app/hooks';
+import { selectCities, setCitiesAsync } from '../../../features/cities/citiesSlice';
 
 const DeletableInput = ({label, onDelete}) => {
+    const cities = useAppSelector(selectCities);
+    const dispatch = useAppDispatch();
+
     const [labelState, setLabelState] = useState(label);
     const [errorMsg, setErrorMsg] = useState('');
 
@@ -27,6 +33,19 @@ const DeletableInput = ({label, onDelete}) => {
         console.log('DELETE ' + label);
     };
 
+    const saveToDatabase = async _ => {
+        if (labelState !== label) {
+            if (await cityExistsAsync(labelState)) {
+                setErrorMsg('Cidade já existe');
+                setLabelState(label);
+            } else {
+                await updateCityAsync(label, labelState);
+                label = labelState;
+                dispatch(setCitiesAsync());
+            }
+        }
+    };
+
     return (
         <>
             <View>
@@ -37,20 +56,19 @@ const DeletableInput = ({label, onDelete}) => {
                         defaultValue={labelState}
                         onChangeText={text => {
                                 if (!text.length)
-                                    setErrorMsg('Não pode ser vazio')
+                                    setErrorMsg('Não pode ser vazio');
                                 else {
                                     setErrorMsg('');
                                     setLabelState(text)
                                 }
                             }
                         }
-                        onBlur={_ => {
+                        onBlur={async _ => {
                                 if (errorMsg) {
                                     setLabelState(label);
                                     setErrorMsg('');
-                                } else {
-                                    console.log('SAVE TO DATABASE');
-                                }
+                                } else
+                                    await saveToDatabase();
                             }
                         }
                     />

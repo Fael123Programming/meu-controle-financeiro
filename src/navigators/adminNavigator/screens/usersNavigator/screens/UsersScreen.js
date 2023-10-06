@@ -51,9 +51,9 @@ const UsersScreen = ({navigation}) => {
                 keyExtractor={item => item.id}
                 ItemSeparatorComponent={_ => <View style={separator}/>}
             />
-            <AddButton
+            {/* <AddButton
                 onPress={_ => navigation.navigate('CreateUser')}
-            />
+            /> */}
         </View>
     );
 };
