@@ -8,7 +8,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../../../../../app/hooks';
 import { selectPaymentMethods, setPaymentMethodsAsync } from '../../../../../features/paymentMethods/paymentMethodsSlice';
 import LoadingIndicator from '../../../../../components/LoadingIndicator';
-import DeletableInput from '../../../components/DeletableInput';
+import DeletableInput from '../../../components/CityDeletableInput';
 import Fonts from '../../../../../utils/Fonts';
 import AddButton from '../../../components/AddButton';
 

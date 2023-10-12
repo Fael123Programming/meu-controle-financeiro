@@ -643,6 +643,12 @@ const updateCityAsync = async (oldName, newName) => {
     });
 };
 
+const deleteCityAsync = async city => {
+    const docRef = doc(firestore, 'admin', 'config');
+    await updateDoc(docRef, {
+        cities: arrayRemove(city)
+    });
+};
 
 const cityExistsAsync = async cityName => {
     const docRef = doc(firestore, 'admin', 'config');
@@ -654,6 +660,7 @@ const cityExistsAsync = async cityName => {
 export {
     cityExistsAsync,
     updateCityAsync,
+    deleteCityAsync,
     blockUserAsync,
     isUserBlockedAsync,
     getAppGatewayAsync,

@@ -37,7 +37,7 @@ const CustomDrawerContent = props => {
                         marginBottom: -20
                     }
                 }
-                label={'Version 1.1.109'}  // commits number: git rev-list --all --count
+                label={'Version 1.1.114'}  // commits number: git rev-list --all --count
                 labelStyle={
                     {
                         textAlign: 'center',

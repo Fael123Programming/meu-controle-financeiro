@@ -6,9 +6,8 @@ import {
     TextInput,
 } from 'react-native';
 import AdminButton from '../../../components/AdminButton';
-import CustomTextInput from '../../../../../components/CustomTextInput';
 
-const CreateCityScreen = ({route, navigation}) => {
+const CreateCityScreen = ({navigation}) => {
     const [city, setCity] = useState('');
 
     const {

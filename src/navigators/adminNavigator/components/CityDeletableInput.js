@@ -9,14 +9,9 @@ import {
 import { AntDesign } from '@expo/vector-icons';
 import YesNoAlert from '../../../components/YesNoAlert';
 import { cityExistsAsync, updateCityAsync } from '../../../../service';
-import { useAppDispatch, useAppSelector } from '../../../app/hooks';
-import { selectCities, setCitiesAsync } from '../../../features/cities/citiesSlice';
 
-const DeletableInput = ({label, onDelete}) => {
-    const cities = useAppSelector(selectCities);
-    const dispatch = useAppDispatch();
-
-    const [labelState, setLabelState] = useState(label);
+const CityDeletableInput = ({cityData, onDelete, onUpdate}) => {
+    const [labelState, setLabelState] = useState(cityData?.label);
     const [errorMsg, setErrorMsg] = useState('');
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -29,19 +24,17 @@ const DeletableInput = ({label, onDelete}) => {
     } = styles;
 
     const deleteItem = _ => {
-        onDelete && onDelete(label);
-        console.log('DELETE ' + label);
+        onDelete && onDelete(cityData);
     };
 
     const saveToDatabase = async _ => {
-        if (labelState !== label) {
+        if (labelState !== cityData.label) {
             if (await cityExistsAsync(labelState)) {
                 setErrorMsg('Cidade já existe');
-                setLabelState(label);
+                setLabelState(cityData.label);
             } else {
-                await updateCityAsync(label, labelState);
-                label = labelState;
-                dispatch(setCitiesAsync());
+                await updateCityAsync(cityData.label, labelState);
+                onUpdate && onUpdate();
             }
         }
     };
@@ -65,7 +58,7 @@ const DeletableInput = ({label, onDelete}) => {
                         }
                         onBlur={async _ => {
                                 if (errorMsg) {
-                                    setLabelState(label);
+                                    setLabelState(cityData.label);
                                     setErrorMsg('');
                                 } else
                                     await saveToDatabase();
@@ -73,10 +66,7 @@ const DeletableInput = ({label, onDelete}) => {
                         }
                     />
                     <Pressable 
-                        onPress={_ => {
-                                setShowDeleteModal(true);
-                            }
-                        }
+                        onPress={_ => setShowDeleteModal(true)}
                         onPressIn={_ => setIconColor('red')}
                         onPressOut={_ => setIconColor('black')}
                     >
@@ -88,7 +78,7 @@ const DeletableInput = ({label, onDelete}) => {
                 visible={showDeleteModal}
                 setVisible={setShowDeleteModal}
                 title={'Excluir'}
-                description={`Tem certeza que desejas excluir '${label}'?`}
+                description={`Tem certeza que desejas excluir '${cityData.label}'?`}
                 onPressYes={deleteItem}
             />
         </>
@@ -114,4 +104,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default DeletableInput;
+export default CityDeletableInput;
