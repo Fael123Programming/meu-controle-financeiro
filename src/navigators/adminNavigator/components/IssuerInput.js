@@ -9,13 +9,16 @@ import {
 import { AntDesign } from '@expo/vector-icons';
 import YesNoAlert from '../../../components/YesNoAlert';
 import CustomDropdown from '../../../components/CustomDropdown';
+import OkAlert from '../../../components/OkAlert';
+import { issuerExistsAsync, updateIssuerAsync, updateIssuerDefaultPaymentMethodAsync } from '../../../../service';
 
-const IssuerInput = ({name, defaultPaymentMethod, onDelete, options}) => {
-    const [nameState, setNameState] = useState(name);
-    const [dpmState, setDpmState] = useState(defaultPaymentMethod);
+const IssuerInput = ({issuerData, onDelete, onUpdate, options}) => {
+    const [nameState, setNameState] = useState(issuerData?.name);
+    const [dpmState, setDpmState] = useState(issuerData?.defaultPaymentMethod);
     const [errorMsg, setErrorMsg] = useState('');
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [okAlertVisible, setOkAlertVisible] = useState(false);
     const [iconColor, setIconColor] = useState('black');
     
     const {
@@ -25,10 +28,7 @@ const IssuerInput = ({name, defaultPaymentMethod, onDelete, options}) => {
         dropdownStyle
     } = styles;
 
-    const deleteIssuer = _ => {
-        onDelete && onDelete(name);
-        console.log('DELETE ISSUER ' + name);
-    };
+    const deleteIssuer = _ => onDelete && onDelete(issuerData);
 
     return (
         <>
@@ -39,29 +39,32 @@ const IssuerInput = ({name, defaultPaymentMethod, onDelete, options}) => {
                         style={{flex: 1}}
                         defaultValue={nameState}
                         onChangeText={text => {
-                                if (!text.length)
+                                if (!text.length) {
                                     setErrorMsg('Não pode ser vazio')
-                                else {
+                                } else {
                                     setErrorMsg('');
-                                    setNameState(text)
+                                    setNameState(text);
                                 }
                             }
                         }
-                        onBlur={_ => {
+                        onBlur={async _ => {
                                 if (errorMsg) {
-                                    setNameState(name);
+                                    setNameState(issuerData?.name);
                                     setErrorMsg('');
-                                } else {
-                                    console.log('SAVE TO DATABASE');
+                                } else if (nameState.toLowerCase() !== issuerData?.name.toLowerCase()) { 
+                                    if (await issuerExistsAsync(nameState)) {
+                                        setOkAlertVisible(true);
+                                        setNameState(issuerData?.name);
+                                    } else {
+                                        await updateIssuerAsync(issuerData?.name, nameState);
+                                        onUpdate && onUpdate();
+                                    }
                                 }
                             }
                         }
                     />
                     <Pressable 
-                        onPress={_ => {
-                                setShowDeleteModal(true);
-                            }
-                        }
+                        onPress={_ => setShowDeleteModal(true)}
                         onPressIn={_ => setIconColor('red')}
                         onPressOut={_ => setIconColor('black')}
                     >
@@ -75,6 +78,11 @@ const IssuerInput = ({name, defaultPaymentMethod, onDelete, options}) => {
                         options={options}
                         width={43}
                         marginBottom={0}
+                        onUpdate={async newState => {
+                                await updateIssuerDefaultPaymentMethodAsync(nameState, newState);
+                                onUpdate && onUpdate();
+                            }
+                        }
                     />
                 </View>
             </View>
@@ -82,8 +90,14 @@ const IssuerInput = ({name, defaultPaymentMethod, onDelete, options}) => {
                 visible={showDeleteModal}
                 setVisible={setShowDeleteModal}
                 title={'Excluir emissor'}
-                description={`Tem certeza que desejas excluir o emissor '${name}'?`}
+                description={`Tem certeza que desejas excluir o emissor '${issuerData?.name}'?`}
                 onPressYes={deleteIssuer}
+            />
+            <OkAlert
+                visible={okAlertVisible}
+                setVisible={setOkAlertVisible}
+                title={'Atualizar Nome de Emissor'}
+                description={'Emissor já existe'}
             />
         </>
     );

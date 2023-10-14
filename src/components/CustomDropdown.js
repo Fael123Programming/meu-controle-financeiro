@@ -14,10 +14,11 @@ const CustomDropdown = (
         state, 
         setState, 
         options, 
+        onUpdate,
         width=90, 
         marginBottom=5,
         labelField='label',
-        valueField='value'
+        valueField='value',
     }
 ) => {
 
@@ -49,7 +50,13 @@ const CustomDropdown = (
                 selectedTextStyle={Fonts.bodyLarge}
                 labelField={labelField}
                 valueField={valueField}
-                onChange={item => setState(item.value)}
+                onChange={async item => {
+                        if (item.value !== state) {
+                            setState(item.value);
+                            onUpdate && onUpdate(item.value);
+                        }
+                    }
+                }
                 maxHeight={'90%'}
                 renderItem={renderItem}
             />

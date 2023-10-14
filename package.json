@@ -17,7 +17,7 @@
     "@react-navigation/drawer": "^6.6.3",
     "@react-navigation/native": "^6.1.7",
     "@react-navigation/stack": "^6.3.17",
-    "@reduxjs/toolkit": "^1.9.5",
+    "@reduxjs/toolkit": "^1.9.7",
     "expo": "^48.0.15",
     "expo-image-picker": "~14.1.1",
     "expo-status-bar": "~1.4.4",

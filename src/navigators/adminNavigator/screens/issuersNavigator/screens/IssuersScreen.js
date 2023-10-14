@@ -12,91 +12,10 @@ import LoadingIndicator from '../../../../../components/LoadingIndicator';
 import IssuerInput from '../../../components/IssuerInput';
 import Fonts from '../../../../../utils/Fonts';
 import AddButton from '../../../components/AddButton';
+import { deleteIssuerAsync } from '../../../../../../service';
 
 const IssuersScreen = ({route, navigation}) => {
     const [issuersState, setIssuersState] = useState([]);
-    // const [issuersState, setIssuersState] = useState([
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     },
-    //     {
-    //         'defaultPaymentMethod': 1,
-    //         'name': 'Lidl'
-    //     }
-    // ]);
     const [paymentMethodsState, setPaymentMethodsState] = useState([]);
 
     const issuers = useAppSelector(selectIssuers);
@@ -125,14 +44,21 @@ const IssuersScreen = ({route, navigation}) => {
     if (issuersStatus === 'loading' || paymentMethodsStatus === 'loading')
         return <LoadingIndicator/>
     
-    const onDelete = item => setIssuersState(issuersState.filter(issuer => issuer.name != item));
+    const onDelete = async item => {
+        await deleteIssuerAsync(item);
+        onUpdate();
+    };
+
+    const onUpdate = _ => {
+        dispatch(setIssuersAsync());
+    };
 
     const renderItem = item => (
-        <IssuerInput 
-            name={item.name} 
-            defaultPaymentMethod={item.defaultPaymentMethod}
+        <IssuerInput
+            issuerData={item}
             options={paymentMethodsState}
-            onDelete={onDelete} 
+            onDelete={onDelete}
+            onUpdate={onUpdate}
             key={item.name + ' ' + item.defaultPaymentMethod}
         />
     );

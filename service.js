@@ -657,10 +657,69 @@ const cityExistsAsync = async cityName => {
     return cities.filter(c => c.label.toLowerCase() == cityName.toLowerCase()).length > 0;
 };
 
+const createNewCityAsync = async cityName => {
+    const docRef = doc(firestore, 'admin', 'config');
+    const theDoc = await getDoc(docRef);
+    let nextCityValue = theDoc.get('nextCityValue');
+    await updateDoc(docRef, {
+        cities: arrayUnion({"label": cityName, "value": nextCityValue}),
+        nextCityValue: increment(1)
+    });
+};
+
+const deleteIssuerAsync = async issuer => {
+    const docRef = doc(firestore, 'admin', 'config');
+    await updateDoc(docRef, {
+        issuers: arrayRemove(issuer)
+    });
+};
+
+const issuerExistsAsync = async issuerName => {
+    const docRef = doc(firestore, 'admin', 'config');
+    const theDoc = await getDoc(docRef);
+    const issuers = theDoc.get('issuers');
+    return issuers.filter(i => i.name.toLowerCase() == issuerName.toLowerCase()).length > 0;
+};
+
+const updateIssuerAsync = async (oldName, newName) => {
+    const docRef = doc(firestore, 'admin', 'config');
+    const theDoc = await getDoc(docRef);
+    const issuers = theDoc.get('issuers');
+    let oldIssuer = issuers.filter(i => i.name.toLowerCase() == oldName.toLowerCase())[0];
+    oldIssuer.name = newName;
+    await updateDoc(docRef, {
+        issuers: issuers,
+    });
+};
+
+const updateIssuerDefaultPaymentMethodAsync = async (issuerName, defaultPaymentMethod) => {
+    const docRef = doc(firestore, 'admin', 'config');
+    const theDoc = await getDoc(docRef);
+    const issuers = theDoc.get('issuers');
+    let oldIssuer = issuers.filter(i => i.name.toLowerCase() == issuerName.toLowerCase())[0];
+    oldIssuer.defaultPaymentMethod = defaultPaymentMethod;
+    await updateDoc(docRef, {
+        issuers: issuers,
+    });
+};
+
+const createNewIssuerAsync = async (issuer, dpm) => {
+    const docRef = doc(firestore, 'admin', 'config');
+    await updateDoc(docRef, {
+        issuers: arrayUnion({"name": issuer, "defaultPaymentMethod": dpm}),
+    });
+};
+
 export {
     cityExistsAsync,
+    createNewIssuerAsync,
+    issuerExistsAsync,
     updateCityAsync,
+    updateIssuerAsync,
+    updateIssuerDefaultPaymentMethodAsync,
     deleteCityAsync,
+    deleteIssuerAsync,
+    createNewCityAsync,
     blockUserAsync,
     isUserBlockedAsync,
     getAppGatewayAsync,
